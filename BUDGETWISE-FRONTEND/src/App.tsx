@@ -1,35 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import store from './redux/store';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import theme from './theme'; // Your custom Material-UI theme
+import LoginPage from './components/LoginPage';
+import HomePage from './components/HomePage';
+import './App.css'; // Tailwind CSS and any additional styles
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App: React.FC = () => {
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Provider store={store}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline /> {/* Material-UI component for baseline CSS */}
+        <Router>
+          <Switch>
+            <Route path="/login" component={LoginPage} />
+            <Route path="/" component={HomePage} exact />
+            {/* Define additional routes here */}
+          </Switch>
+        </Router>
+      </ThemeProvider>
+    </Provider>
+  );
+};
 
-export default App
+export default App;
