@@ -4,9 +4,13 @@ import { Provider } from 'react-redux';
 import store from './redux/store';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+
+// Import your components
 import LoginPage from './components/LoginPage';
+import Dashboard from './components/Dashboard'; // Assuming this is the path to your Dashboard component
 import HomePage from './components/HomePage';
-import PrivateRoute from './components/PrivateRoute';
+import PrivateRoute from './components/PrivateRoute'; // Custom component to handle protected routes
+
 import './App.css';
 
 const theme = createTheme({
@@ -24,9 +28,12 @@ const App: React.FC = () => {
         <CssBaseline />
         <Router>
           <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} /> {/* Protected HomePage Route */}
-            {/* Redirect any unmatched path to the LoginPage */}
+            {/* Updated Route Configuration */}
+            <Route path="/" element={<HomePage />} /> {/* Unprotected HomePage Route */}
+            <Route path="/login" element={<LoginPage />} /> {/* Unprotected LoginPage Route */}
+            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} /> {/* Protected Dashboard Route */}
+            
+            {/* Redirect any unmatched path to the HomePage */}
             <Route path="*" element={<Navigate replace to="/" />} />
           </Routes>
         </Router>

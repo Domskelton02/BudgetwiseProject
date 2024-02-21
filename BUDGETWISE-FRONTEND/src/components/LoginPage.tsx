@@ -1,42 +1,61 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { login } from '../services/apiService';
+import { authService } from '../services/apiService';
 import { setCredentials as setAuthCredentials } from '../redux/slices/authSlice';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Button, TextField, Container, Typography, Stack, Alert, Box, Card, CardContent, Link } from '@mui/material';
 
-const LoginPage: React.FC = () => {
-  const [loginCredentials, setLoginCredentials] = useState({ email: '', password: '' });
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+const LoginPage = () => {
+  const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginCredentials({ ...loginCredentials, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setLoginCredentials({ ...loginCredentials, [name]: value });
   };
+
+  interface LoginResponse {
+    token: string;
+    user: {
+      id: string;
+      email: string;
+      // Add other user fields as necessary
+    };
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      const data = await login(loginCredentials);
-      dispatch(setAuthCredentials(data));
-      navigate('/dashboard');
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message || 'Failed to login');
-      }
+      const response = await authService.login(loginCredentials);
+      const data: LoginResponse = response.data; // Cast the response data to the LoginResponse type
+      dispatch(setAuthCredentials({ token: data.token, user: data.user }));
+      navigate('/dashboard'); // Redirect to dashboard on successful login
+    } catch (err) {
+      setError('Failed to login. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-  <Container component="main" maxWidth="xs" sx={{
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: '100vh',
-    padding: '20px'
-  }}>
+    <Container component="main" maxWidth="xs" sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      padding: '20px'
+    }}>
       <Card sx={{ mt: 8, mb: 2, padding: 3, width: '100%', maxWidth: 400 }}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Typography variant="h4" component="h1" gutterBottom>
@@ -78,8 +97,9 @@ const LoginPage: React.FC = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </Box>
           <Stack direction="row" justifyContent="space-between" sx={{ width: '100%' }}>
