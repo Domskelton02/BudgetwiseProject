@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { authService } from '../services/apiService';
 import { setCredentials as setAuthCredentials } from '../redux/slices/authSlice';
@@ -10,6 +10,15 @@ interface LoginCredentials {
   password: string;
 }
 
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    // Add other user fields as necessary
+  };
+}
+
 const LoginPage = () => {
   const [loginCredentials, setLoginCredentials] = useState<LoginCredentials>({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
@@ -17,35 +26,37 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Handle change in text fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setLoginCredentials({ ...loginCredentials, [name]: value });
   };
 
-  interface LoginResponse {
-    token: string;
-    user: {
-      id: string;
-      email: string;
-      // Add other user fields as necessary
-    };
-  }
-
+  // Submit the login form
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
       const response = await authService.login(loginCredentials);
-      const data: LoginResponse = response.data; // Cast the response data to the LoginResponse type
+      const data: LoginResponse = response.data;
+      localStorage.setItem('authToken', data.token); // Store the token in local storage
       dispatch(setAuthCredentials({ token: data.token, user: data.user }));
-      navigate('/dashboard'); // Redirect to dashboard on successful login
+      navigate('/dashboard');
     } catch (err) {
       setError('Failed to login. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
+
+  // Check for existing auth token on initial load
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      // TODO: Verify the token with the backend, then dispatch setAuthCredentials
+    }
+  }, [dispatch]);
 
   return (
     <Container component="main" maxWidth="xs" sx={{
