@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
+import { Provider, useDispatch } from 'react-redux';
 import store from './redux/store';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import LoginPage from './components/LoginPage';
-import Dashboard from './components/Dashboard'; // Assuming this is the path to your Dashboard component
+import Dashboard from './components/Dashboard';
 import HomePage from './components/HomePage';
-import PrivateRoute from './components/PrivateRoute'; // Custom component to handle protected routes
+import PrivateRoute from './components/PrivateRoute';
+import { setCredentials } from './redux/slices/authSlice'; // Assuming these actions are implemented
 import './App.css';
 
+// Define your theme for Material-UI
 const theme = createTheme({
   palette: {
     primary: {
@@ -23,18 +25,38 @@ const App: React.FC = () => {
     <Provider store={store}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
-          <Routes>
-            {/* Updated Route Configuration */}
-            <Route path="/" element={<HomePage />} /> {/* Unprotected HomePage Route */}
-            <Route path="/login" element={<LoginPage />} /> {/* Unprotected LoginPage Route */}
-            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} /> {/* Protected Dashboard Route */}
-            {/* Redirect any unmatched path to the HomePage */}
-            <Route path="*" element={<Navigate replace to="/" />} />
-          </Routes>
-        </Router>
+        <Application />
       </ThemeProvider>
     </Provider>
+  );
+};
+
+// Refactored Application component
+const Application = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Check for a stored auth token and user info in local storage
+    const authToken = localStorage.getItem('authToken');
+    const userInfo = localStorage.getItem('userInfo'); // Assuming you store user info in local storage
+
+    if (authToken && userInfo) {
+      const user = JSON.parse(userInfo);
+      dispatch(setCredentials({ token: authToken, user }));
+    }
+
+    // Do not return a cleanup function that logs out the user
+  }, [dispatch]);
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="*" element={<Navigate replace to="/" />} />
+      </Routes>
+    </Router>
   );
 };
 
