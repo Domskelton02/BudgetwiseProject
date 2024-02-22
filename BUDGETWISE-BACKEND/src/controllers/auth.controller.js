@@ -15,6 +15,19 @@ const login = catchAsync(async (req, res) => {
   res.send({ user, tokens });
 });
 
+const validateToken = catchAsync(async (req, res) => {
+  const bearerToken = req.headers.authorization.split(' ')[1];
+  try {
+    const tokenType = req.headers['x-token-type'] || 'access';
+
+    const tokenDoc = await tokenService.verifyToken(bearerToken, tokenType);
+
+    res.send({ valid: true, tokenDoc });
+  } catch (error) {
+    res.status(httpStatus.UNAUTHORIZED).send({ valid: false, message: 'Invalid token' });
+  }
+});
+
 const logout = catchAsync(async (req, res) => {
   await authService.logout(req.body.refreshToken);
   res.status(httpStatus.NO_CONTENT).send();
@@ -50,6 +63,7 @@ const verifyEmail = catchAsync(async (req, res) => {
 module.exports = {
   register,
   login,
+  validateToken,
   logout,
   refreshTokens,
   forgotPassword,

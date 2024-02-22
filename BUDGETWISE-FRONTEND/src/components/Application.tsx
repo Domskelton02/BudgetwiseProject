@@ -8,39 +8,55 @@ import HomePage from './HomePage';
 import PrivateRoute from './PrivateRoute';
 import { setCredentials, logout } from '../redux/slices/authSlice';
 
+async function validateToken(token) {
+  try {
+    // Replace with your actual backend endpoint
+    const response = await fetch('/api/v1/auth/validate-token', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Token validation failed');
+    }
+
+    // If your backend sends a specific response body, parse it here
+    // const data = await response.json();
+    // return data.valid;
+
+    // If the backend endpoint simply returns a 200 OK for valid tokens,
+    // then the token is valid if we get to this point
+    return true;
+  } catch (error) {
+    console.error('Error validating token:', error);
+    return false;
+  }
+}
+
 const Application: React.FC = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const checkAuthState = async () => {
-      const authToken = localStorage.getItem('authToken');
-      if (!authToken) {
-        // If there's no token, ensure the user is considered logged out.
-        dispatch(logout());
-        return;
-      }
+    const initAuthState = async () => {
+      const token = localStorage.getItem('authToken');
+      const userInfo = localStorage.getItem('userInfo');
 
-      try {
-        // Assume validateToken is an API call that validates the authToken.
-        // You need to implement this API call based on your backend.
-        const isValidToken = await validateToken(authToken);
+      if (token && userInfo) {
+        const isValidToken = await validateToken(token);
         if (isValidToken) {
-          const userInfo = localStorage.getItem('userInfo');
-          if (userInfo) {
-            const user = JSON.parse(userInfo);
-            dispatch(setCredentials({ token: authToken, user }));
-          }
+          const user = JSON.parse(userInfo);
+          dispatch(setCredentials({ token, user }));
         } else {
-          // If the token is invalid, clear the auth state.
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userInfo');
           dispatch(logout());
         }
-      } catch (error) {
-        console.error('Error validating token:', error);
-        dispatch(logout());
       }
     };
 
-    checkAuthState();
+    initAuthState();
   }, [dispatch]);
 
   return (
@@ -60,20 +76,3 @@ const Application: React.FC = () => {
 };
 
 export default Application;
-
-async function validateToken(token: string): Promise<boolean> {
-  // Implement the API call to your backend to validate the token
-  // This function should return true if the token is valid, false otherwise
-  // Example:
-  /*
-  const response = await fetch('/api/validateToken', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-  });
-  return response.ok;
-  */
-  throw new Error("validateToken function is not implemented.");
-}
