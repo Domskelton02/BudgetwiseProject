@@ -1,4 +1,3 @@
-// PrivateRoute.tsx
 import React from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
