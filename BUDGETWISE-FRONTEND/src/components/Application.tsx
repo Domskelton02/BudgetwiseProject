@@ -1,16 +1,21 @@
 // Application.tsx
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate
+} from 'react-router-dom';
 import LoginPage from './LoginPage';
 import Dashboard from './Dashboard';
 import HomePage from './HomePage';
+import Register from './Register'; // Import Register
 import PrivateRoute from './PrivateRoute';
 import { setCredentials, logout } from '../redux/slices/authSlice';
 
-async function validateToken(token) {
+async function validateToken(token: string): Promise<boolean> {
   try {
-    // Replace with your actual backend endpoint
     const response = await fetch('/api/v1/auth/validate-token', {
       method: 'GET',
       headers: {
@@ -22,12 +27,6 @@ async function validateToken(token) {
       throw new Error('Token validation failed');
     }
 
-    // If your backend sends a specific response body, parse it here
-    // const data = await response.json();
-    // return data.valid;
-
-    // If the backend endpoint simply returns a 200 OK for valid tokens,
-    // then the token is valid if we get to this point
     return true;
   } catch (error) {
     console.error('Error validating token:', error);
@@ -64,6 +63,7 @@ const Application: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<Register />} /> {/* Register route added */}
         <Route path="/dashboard" element={
           <PrivateRoute>
             <Dashboard />
