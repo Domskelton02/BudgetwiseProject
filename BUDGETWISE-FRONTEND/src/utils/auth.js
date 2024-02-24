@@ -1,24 +1,26 @@
 import API from '../services/apiService';
 
+// Function to validate the token with the backend
 export const validateToken = async (token) => {
   try {
-    const response = await axios.get('http://localhost:3000/v1/auth/validate-token', {
+    // Use the API instance to send the token to the backend for validation
+    const response = await API.get('/auth/validate-token', {
       headers: { Authorization: `Bearer ${token}` },
     });
-    return response.data; // Assuming the backend sends back some data on success
+    // Assuming the backend sends back some data on success
+    return response.data;
   } catch (error) {
     console.error('Token validation error:', error);
-    throw error; // Re-throw or handle as needed
+    // Re-throw or handle as needed
+    throw error;
   }
 };
 
-
+// Function to get the token from local storage
 export const getToken = () => localStorage.getItem('authToken');
 
+// Function to set the token in local storage
 export const setToken = (token) => localStorage.setItem('authToken', token);
 
+// Function to remove the token from local storage
 export const removeToken = () => localStorage.removeItem('authToken');
-
-// Optionally, implement a function to validate the token with the backend
-// This could involve calling an endpoint that verifies the token's validity
-
