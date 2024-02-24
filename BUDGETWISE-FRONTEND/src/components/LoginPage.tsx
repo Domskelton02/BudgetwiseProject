@@ -4,6 +4,7 @@ import { authService } from '../services/apiService';
 import { setCredentials as setAuthCredentials } from '../redux/slices/authSlice';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Button, TextField, Container, Typography, Stack, Alert, Box, Card, CardContent, Link } from '@mui/material';
+import { validateToken } from '../utils/auth';
 
 interface LoginCredentials {
   email: string;
@@ -39,6 +40,7 @@ const LoginPage = () => {
     setError('');
     try {
       const response = await authService.login(loginCredentials);
+      console.log(response.data);
       const data: LoginResponse = response.data;
       localStorage.setItem('authToken', data.token); // Store the token in local storage
       dispatch(setAuthCredentials({ token: data.token, user: data.user }));
@@ -54,9 +56,23 @@ const LoginPage = () => {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      // TODO: Verify the token with the backend, then dispatch setAuthCredentials
+      validateToken(token).then((validationResult) => {
+        if (validationResult.valid) {
+          // Assuming validationResult contains user data; adjust accordingly
+          dispatch(setAuthCredentials({ token, user: validationResult.user }));
+          navigate('/dashboard');
+        } else {
+          localStorage.removeItem('authToken'); // Token is invalid, remove it
+          // Optionally, redirect to login or display a message
+        }
+      }).catch((error) => {
+        console.error('Error validating token:', error);
+        localStorage.removeItem('authToken'); // On error, assume token is invalid and remove it
+        // Optionally, redirect to login or display a message
+      });
     }
-  }, [dispatch]);
+  }, [dispatch, navigate]);
+  
 
   return (
     <Container component="main" maxWidth="xs" sx={{
