@@ -10,29 +10,10 @@ import {
 import LoginPage from './LoginPage';
 import Dashboard from './Dashboard';
 import HomePage from './HomePage';
-import Register from './Register'; // Import Register
+import Register from './Register';
 import PrivateRoute from './PrivateRoute';
 import { setCredentials, logout } from '../redux/slices/authSlice';
-
-async function validateToken(token: string): Promise<boolean> {
-  try {
-    const response = await fetch('/api/v1/auth/validate-token', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Token validation failed');
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error validating token:', error);
-    return false;
-  }
-}
+import API from '../services/apiService'; // Import the API instance for unified API calls
 
 const Application: React.FC = () => {
   const dispatch = useDispatch();
@@ -43,11 +24,15 @@ const Application: React.FC = () => {
       const userInfo = localStorage.getItem('userInfo');
 
       if (token && userInfo) {
-        const isValidToken = await validateToken(token);
-        if (isValidToken) {
+        try {
+          // Use the API instance for token validation
+          await API.get('/auth/validate-token', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           const user = JSON.parse(userInfo);
           dispatch(setCredentials({ token, user }));
-        } else {
+        } catch (error) {
+          console.error('Error validating token:', error);
           localStorage.removeItem('authToken');
           localStorage.removeItem('userInfo');
           dispatch(logout());
@@ -63,7 +48,7 @@ const Application: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<Register />} /> {/* Register route added */}
+        <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={
           <PrivateRoute>
             <Dashboard />
